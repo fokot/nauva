@@ -1,19 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Nauva.Product.Template.App (app) where
 
 
-import qualified Data.Text as T
-
 import           Nauva.App
-import           Nauva.Internal.Types
 import           Nauva.View
 
-import           Nauva.Service.Head
-
 import           Language.Haskell.TH
+import           Language.Haskell.TH.Syntax
 
 
 
@@ -45,22 +40,17 @@ header = div_ [style_ style]
         padding "20px"
         color "white"
 
-        onHover $ do
-            color "red"
-
 intro :: Element
 intro = p_ [style_ style]
     [ str_ "To get started, edit "
-    , code_ [str_ $ T.pack file]
+    , code_ [str_ thisFilePath]
     , str_ " and save to reload."
     ]
   where
     style = mkStyle $ do
         fontSize "large"
 
-    file :: String
-    file = $(do
-        loc <- location
-        let s = loc_filename loc
-        [| s |]
-      )
+    -- The path to this file. Here we use a bit of TemplateHaskell magic
+    -- so that we can show the exact path the user has to edit to get
+    -- started
+    thisFilePath = $(lift =<< loc_filename <$> location)
